@@ -22,25 +22,25 @@ resource "google_container_cluster" "primary" {
   }
 
   cluster_autoscaling {
-    enabled = var.gkes.cluster_autoscaling
+    enabled = true
     resource_limits {
-      resource_type = var.gkes.resource_type_cpu
-      minimum       = var.gkes.minimum_resource_limit_cpu
-      maximum       = var.gkes.maximum_resource_limit_cpu
+      resource_type = "cpu"
+      minimum       = 6
+      maximum       = 20
     }
     resource_limits {
-      resource_type = var.gkes.resource_type_memory
-      minimum       = var.gkes.minimum_resource_limit_memory
-      maximum       = var.gkes.maximum_resource_limit_memory
+      resource_type = "memory"
+      minimum       = 24
+      maximum       = 80
     }
   }
 
   binary_authorization {
-    evaluation_mode = var.gkes.evaluation_mode # "PROJECT_SINGLETON_POLICY_ENFORCE"
+    evaluation_mode = var.gkes.evaluation_mode 
   }
 
-  enable_shielded_nodes = var.gkes.enable_shielded_nodes
-  initial_node_count    = var.gkes.initial_node_count
+  enable_shielded_nodes = true
+  initial_node_count    = 1
   networking_mode       = var.gkes.networking_mode
   logging_service       = var.gkes.logging_service
 
@@ -55,17 +55,17 @@ resource "google_container_cluster" "primary" {
 
   
   vertical_pod_autoscaling {
-    enabled = var.gkes.vertical_pod_autoscaling
+    enabled = true
   }
   addons_config {
     http_load_balancing {
-      disabled = var.gkes.http_load_balancing
+      disabled = true
     }
     horizontal_pod_autoscaling {
-      disabled = var.gkes.horizontal_pod_autoscaling
+      disabled = true
     }
     dns_cache_config {
-      enabled = var.gkes.dns_cache_config
+      enabled = true
     }
   }
   datapath_provider = var.gkes.datapath_provider
@@ -87,7 +87,7 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   }
 
   node_config {
-    preemptible  = var.gke_node_variables.preemptible
+    preemptible  = true
     machine_type = var.gke_node_variables.machine_type
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
@@ -96,8 +96,7 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
     labels = var.gke_node_variables.labels
 
     shielded_instance_config {
-      enable_secure_boot          = var.gke_node_variables.enable_secure_boot
-      enable_integrity_monitoring = var.gke_node_variables.enable_integrity_monitoring
-    }
+      enable_secure_boot          = true
+      enable_integrity_monitoring = true
   }
 }
