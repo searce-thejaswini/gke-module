@@ -1,16 +1,15 @@
 resource "google_container_cluster" "primary" {
-  name                      = var.gkes.name_cluster
-  location                  = var.gkes.location
-  node_locations            = var.gkes.node_locations
+  name                      = "${var.company_name}-${var.gke_app_name}-${var.environments[0]}-gke-cluster-01"
+  location                  = "${var.region}"
   default_max_pods_per_node = var.gkes.default_max_pods_per_node
-  network                   = var.gkes.network
-  subnetwork                = var.gkes.subnetwork
-  project                   = var.gkes.project_id
+  network                   = "${google_compute_network.network.name}"
+  subnetwork                = "${google_compute_subnetwork.subnetwork.name}"
+  project                   = "${var.project}"
   remove_default_node_pool  = true
-  provider                  = google-beta
+  #provider                  = google-beta
 
   release_channel {
-    channel = "STABLE"
+    channel = var.gkes.release_channel
   }
 
   ip_allocation_policy {
@@ -36,13 +35,12 @@ resource "google_container_cluster" "primary" {
   }
 
   binary_authorization {
-    evaluation_mode = var.gkes.evaluation_mode
+    evaluation_mode = "PROJECT_SINGLETON_POLICY_ENFORCE"
   }
 
   enable_shielded_nodes = true
-  initial_node_count    = var.gkes.initial_node_count
-  networking_mode       = var.gkes.networking_mode
-  logging_service       = var.gkes.logging_service
+  initial_node_count    = 1
+  logging_service       = "logging.googleapis.com/kubernetes"
 
   master_authorized_networks_config {
     cidr_blocks {
@@ -51,7 +49,7 @@ resource "google_container_cluster" "primary" {
     }
   }
 
-  monitoring_service = var.gkes.monitoring_service
+  monitoring_service = "monitoring.googleapis.com/kubernetes"
 
   dynamic "private_cluster_config" {
     for_each = [
@@ -65,17 +63,17 @@ resource "google_container_cluster" "primary" {
   }
 
   vertical_pod_autoscaling {
-    enabled = var.gkes.vertical_pod_autoscaling
+    enabled = true
   }
   addons_config {
     http_load_balancing {
-      disabled = var.gkes.http_load_balancing
+      disabled = true
     }
     horizontal_pod_autoscaling {
-      disabled = var.gkes.horizontal_pod_autoscaling
+      disabled = true
     }
     dns_cache_config {
-      enabled = var.gkes.dns_cache_config
+      enabled = true
     }
   }
   datapath_provider = "ADVANCED_DATAPATH"
@@ -85,11 +83,11 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
   depends_on = [
     google_container_cluster.primary
   ]
-  name               = var.gke_node_variables.name_node
-  location           = var.gke_node_variables.location
-  project            = var.gke_node_variables.project_id
-  cluster            = var.gke_node_variables.name_cluster
-  initial_node_count = var.gke_node_variables.initial_node_count
+  name               = "${var.company_name}-${var.gke_app_name}-${var.environments[0]}-gke-node-01"
+  location           = "${var.region}"
+  project            = "${var.region}"
+  cluster            = "${google_container_cluster.primary.name}"
+  initial_node_count = 1
 
   autoscaling {
     min_node_count = var.gke_node_variables.min_node_count
