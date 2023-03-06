@@ -48,3 +48,4 @@ variable "gke_node_variables" {
   description = "The list of GKE Node Pool Parameters"
   default     = null
 }
+
